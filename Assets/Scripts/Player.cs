@@ -17,6 +17,7 @@ public class Player : MonoBehaviour
     public float maxShotDelay; //장전하는데 거리는 시간
     public float curShotDelay; //실제 딜레이
 
+    public GameManager manager;
     Animator anim;
 
     private void Awake()
@@ -114,6 +115,12 @@ public class Player : MonoBehaviour
                     isTouchRight = true;
                     break;
             }
+        }
+        //피격 이벤트
+        else if (collision.gameObject.tag == "Enemy" || collision.gameObject.tag == "EnemyBullet")
+        {
+            manager.RespawnPlayer();
+            gameObject.SetActive(false); //피격 시 player 비활성화,
         }
     }
 

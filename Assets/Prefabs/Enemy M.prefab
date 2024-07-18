@@ -178,6 +178,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyName: M
+  enemyScore: 300
   speed: 5
   health: 12
   sprites:
@@ -187,4 +188,8 @@ MonoBehaviour:
   curShotDelay: 0
   bulletObjA: {fileID: 5423543476268458888, guid: b5885ca26c1d09d4c8ae4d595f527652, type: 3}
   bulletObjB: {fileID: 5423543476268458888, guid: ca30b7b266bc9b54086ccafcbae70f44, type: 3}
+  itemCoin: {fileID: 2181174790973510421, guid: cc4eaf096b7efc3418a44731c5288b42, type: 3}
+  itemPower: {fileID: 1396614463207245737, guid: 40a10193028f6bb48abcdccce3215069, type: 3}
+  itemBoom: {fileID: 8816761270713856824, guid: 710818ef12cb555478aae6f99361fecf, type: 3}
   player: {fileID: 0}
+  objectManager: {fileID: 0}

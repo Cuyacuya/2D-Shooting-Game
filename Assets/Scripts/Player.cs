@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -29,6 +30,14 @@ public class Player : MonoBehaviour
     public ObjectManager objectManager;
     public bool isHit;
     public bool isBoomTime;
+    public bool[] joyControl; //어느 버튼이 눌렸는지
+    public bool isControl; //눌렸는지 화인
+    public bool isButtonA;
+    public bool isButtonB;
+
+
+    public bool isRespawnTime;
+    SpriteRenderer spriteRenderer;
 
     Animator anim;
 
@@ -36,7 +45,29 @@ public class Player : MonoBehaviour
     private void Awake()
     {
         anim = GetComponent<Animator>(); //변수 초기화하는 방법
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
+
+    void OnEnable()
+    {
+        Unbeatable();
+        Invoke("Unbeatable", 3);
+    }
+
+    void Unbeatable()
+    {
+        isRespawnTime = !isRespawnTime;
+
+        if(isRespawnTime) //#. 무적 타임
+        {
+            spriteRenderer.color = new Color(1, 1, 1, 1);
+        }
+        else
+        {
+            spriteRenderer.color = new Color(1, 1, 1, 0.5f);
+        }
+    }
+
     void Update()
     {
         Move();
@@ -44,13 +75,44 @@ public class Player : MonoBehaviour
         Boom();
         Reload();
     }
-    
+
+    public void JoyPanel(int type)
+    {
+        for(int index = 0; index<9; index++)
+        {
+            joyControl[index] = index == type;
+        }
+    }
+
+    public void Joydown()
+    {
+        isControl = true;
+    }
+
+    public void JoyUp()
+    {
+        isControl = false;
+    }
+
     void Move()
     {
+        //#. keyboard Control value
         float h = Input.GetAxisRaw("Horizontal"); //GetAxisRaw는 -1, 0, 1의 값만 들어옴
-        if ((isTouchRight && h == 1) || (isTouchLeft && h == -1)) h = 0;
         float v = Input.GetAxisRaw("Vertical");
-        if ((isTouchTop && v == 1) || (isTouchBottom && v == -1)) v = 0;
+
+        //#. Joy Control Value
+        if(joyControl[0]) { h = -1; v = 1; }
+        if(joyControl[1]) { h = 0; v = 1; }
+        if(joyControl[2]) { h = 1; v = 1; }
+        if(joyControl[3]) { h = -1; v = 0; }
+        if(joyControl[4]) { h = 0; v = 0; }
+        if(joyControl[5]) { h = 1; v = 0; }
+        if(joyControl[6]) { h = -1; v = -1; }
+        if(joyControl[7]) { h = 0; v = -1; }
+        if(joyControl[8]) { h = 1; v = -1; }
+
+        if ((isTouchRight && h == 1) || (isTouchLeft && h == -1) || !isControl) h = 0;
+        if ((isTouchTop && v == 1) || (isTouchBottom && v == -1) || !isControl) v = 0;
 
         Vector3 curPos = transform.position; //transform은 모노 비헤비어에 달려있는 기본
         Vector3 nextPos = new Vector3(h, v, 0) * speed * Time.deltaTime; //물리적 이동이 아닌 transform을 통한 이동은 deltaTime이 필수!
@@ -63,10 +125,24 @@ public class Player : MonoBehaviour
         }
     }
 
+    public void ButtonADown()
+    {
+        isButtonA = true;
+    }
+    public void ButtonAUp()
+    {
+        isButtonA = false;
+    }
+    public void buttonBDown()
+    {
+        isButtonB = true;
+    }
     void Fire()
     {
-        if (!Input.GetButton("Fire1")) //Fire1 이라는 버튼을 누르지않는다면(!) 아무것도 안함
-            return;
+        //if (!Input.GetButton("Fire1")) //Fire1 이라는 버튼을 누르지않는다면(!) 아무것도 안함
+        //return;
+
+        if (!isButtonA) return;
 
         if (curShotDelay < maxShotDelay) //현재의 딜레이가 장전 시간보다 작으면 아무것도 안함
             return;
@@ -119,8 +195,10 @@ public class Player : MonoBehaviour
 
     void Boom()
     {
-        if (!Input.GetButton("Fire2")) //Fire2 이라는 버튼을 누르지않는다면(!) 아무것도 안함(마우스 우측버튼)
-            return;
+        //if (!Input.GetButton("Fire2")) //Fire2 이라는 버튼을 누르지않는다면(!) 아무것도 안함(마우스 우측버튼)
+        //return;
+
+        if (!isButtonB) return;
 
         if (isBoomTime) //Fire1 이라는 버튼을 누르지않는다면(!) 아무것도 안함
             return;
@@ -205,11 +283,15 @@ public class Player : MonoBehaviour
         //피격 이벤트
         else if (collision.gameObject.tag == "Enemy" || collision.gameObject.tag == "EnemyBullet")
         {
+            if (!isRespawnTime)
+                return;
+
             if (isHit) return;
             
             isHit = true;
             life--;
             gameManager.UpdateLifeIcon(life);
+            gameManager.CallExplosion(transform.position, "P");
 
             if(life == 0)
             {
